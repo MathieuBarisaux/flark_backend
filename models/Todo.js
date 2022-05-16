@@ -15,8 +15,15 @@ const Todo = mongoose.model("Todo", {
     type: Boolean,
     default: false,
   },
-  date: Date,
-  categories: Object,
+  creation_date: {
+    type: Date,
+    default: Date.now,
+  },
+  deadline: Date,
+  categories: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
 });
 
 module.exports = Todo;
