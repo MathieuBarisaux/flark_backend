@@ -7,6 +7,7 @@ const app = express();
 const expressFormidable = require("express-formidable");
 app.use(expressFormidable());
 
+// ** Cors **
 const cors = require("cors");
 app.use(cors());
 
@@ -16,8 +17,12 @@ mongoose.connect(process.env.MONGODB_URI);
 // ** Roads **
 const todoRoad = require("./routes/todo");
 app.use(todoRoad);
+
 const categoryRoad = require("./routes/category");
 app.use(categoryRoad);
+
+const userRoad = require("./routes/user");
+app.use(userRoad);
 
 // ** 404 Not Found **
 app.all("*", (req, res) => {
