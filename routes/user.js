@@ -18,7 +18,7 @@ router.post("/users/signup", async (req, res) => {
 
     if (!checkEmail) {
       const salt = uid2(64);
-      const hash = SHA256(password + salt);
+      const hash = SHA256(password + salt).toString(encBase64);
       const token = uid2(64);
 
       const newUser = await new User({
@@ -38,6 +38,38 @@ router.post("/users/signup", async (req, res) => {
       });
     } else {
       res.status(409).json({ message: "This email already use" });
+    }
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+
+// ** Sign In road **
+router.post("/users/signin", async (req, res) => {
+  try {
+    const { email, password } = req.fields;
+
+    const searchMailUser = await User.findOne({ email: email });
+
+    if (searchMailUser) {
+      const checkHash = SHA256(password + searchMailUser.salt).toString(
+        encBase64
+      );
+
+      if (checkHash === searchMailUser.hash) {
+        res
+          .status(200)
+          .json({
+            id: searchMailUser._id,
+            token: searchMailUser.token,
+            pseudo: searchMailUser.pseudo,
+          });
+      } else {
+        console.log(checkHash, searchMailUser.hash);
+        res.status(409).json({ message: "This mail or password is not exact" });
+      }
+    } else {
+      res.status(409).json({ message: "This mail or password is not exact" });
     }
   } catch (error) {
     res.status(400).json(error.message);
