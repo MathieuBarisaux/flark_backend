@@ -37,7 +37,7 @@ router.post("/users/signup", async (req, res) => {
         pseudo: createdResponse.pseudo,
       });
     } else {
-      res.status(409).json({ message: "This email already use" });
+      res.status(409).json({ message: "Sorry but this email is already use" });
     }
   } catch (error) {
     res.status(400).json(error.message);
@@ -57,19 +57,20 @@ router.post("/users/signin", async (req, res) => {
       );
 
       if (checkHash === searchMailUser.hash) {
-        res
-          .status(200)
-          .json({
-            id: searchMailUser._id,
-            token: searchMailUser.token,
-            pseudo: searchMailUser.pseudo,
-          });
+        res.status(200).json({
+          id: searchMailUser._id,
+          token: searchMailUser.token,
+          pseudo: searchMailUser.pseudo,
+        });
       } else {
-        console.log(checkHash, searchMailUser.hash);
-        res.status(409).json({ message: "This mail or password is not exact" });
+        res
+          .status(409)
+          .json({ message: "Sorry but this mail or password is not exact" });
       }
     } else {
-      res.status(409).json({ message: "This mail or password is not exact" });
+      res
+        .status(409)
+        .json({ message: "Sorry but this mail or password is not exact" });
     }
   } catch (error) {
     res.status(400).json(error.message);
