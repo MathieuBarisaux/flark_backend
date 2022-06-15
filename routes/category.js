@@ -2,13 +2,17 @@ const express = require("express");
 const { get } = require("express/lib/response");
 const router = express.Router();
 
+const isAuthenticated = require("../Middleware/isAuthentificated");
+
 const Category = require("../models/Category");
 const Todo = require("../models/Todo");
 
 // ** Check category road **
-router.get("/category/read", async (req, res) => {
+router.get("/category/read", isAuthenticated, async (req, res) => {
   try {
-    const findCategory = await Category.find();
+    const user = req.user;
+
+    const findCategory = await Category.find({ user: user._id });
 
     res.status(200).json(findCategory);
   } catch (error) {
@@ -17,14 +21,16 @@ router.get("/category/read", async (req, res) => {
 });
 
 // ** Create category road **
-router.post("/category/create", async (req, res) => {
+router.post("/category/create", isAuthenticated, async (req, res) => {
   try {
     const { category_name, category_color, category_icon } = req.fields;
+    const user = req.user;
 
     const newCategory = await new Category({
       category_name: category_name,
       category_color: category_color,
       category_icon: category_icon,
+      user: user._id,
     });
 
     const response = await newCategory.save();
@@ -36,27 +42,33 @@ router.post("/category/create", async (req, res) => {
 });
 
 // ** Update cateogry road **
-router.put("/category/update", async (req, res) => {
+router.put("/category/update", isAuthenticated, async (req, res) => {
   try {
     const { category_id, category_name, category_icon, category_color } =
       req.fields;
 
+    const user = req.user;
+
     if (category_id) {
       const findCategory = await Category.findById(category_id);
 
-      if (category_name) {
-        findCategory.category_name = category_name;
-      }
-      if (category_icon) {
-        findCategory.category_icon = category_icon;
-      }
-      if (category_color) {
-        findCategory.category_color = category_color;
-      }
+      if (findCategory.user.toString() === user._id.toString()) {
+        if (category_name) {
+          findCategory.category_name = category_name;
+        }
+        if (category_icon) {
+          findCategory.category_icon = category_icon;
+        }
+        if (category_color) {
+          findCategory.category_color = category_color;
+        }
 
-      await findCategory.save();
+        await findCategory.save();
 
-      res.status(200).json({ OK: "Your category has been updated" });
+        res.status(200).json({ OK: "Your category has been updated" });
+      } else {
+        res.status(401).json({ error: "Unauthorized" });
+      }
     } else {
       res.status(400).json({ Error: "We need ID to update" });
     }
@@ -66,15 +78,22 @@ router.put("/category/update", async (req, res) => {
 });
 
 // ** Delete category road **
-router.delete("/category/delete", async (req, res) => {
+router.delete("/category/delete", isAuthenticated, async (req, res) => {
   try {
     const { category_id } = req.query;
+    const user = req.user;
 
-    const cat = await Category.findByIdAndDelete(category_id);
+    const categorieForDelete = await Category.findById(category_id);
 
-    const allTodosInCat = await Todo.deleteMany({ categories: category_id });
+    if (categorieForDelete.user.toString() === user._id.toString()) {
+      await Category.findByIdAndDelete(category_id);
 
-    res.status(200).json({ message: "Your category has been deleted" });
+      const allTodosInCat = await Todo.deleteMany({ categories: category_id });
+
+      res.status(200).json({ message: "Your category has been deleted" });
+    } else {
+      res.status(401).json({ error: "Unauthorized" });
+    }
   } catch (error) {
     res.status(400).json(error.message);
   }

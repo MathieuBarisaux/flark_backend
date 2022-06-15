@@ -1,13 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
+const isAuthenticated = require("../Middleware/isAuthentificated");
+
 const Todo = require("../models/Todo");
 const Category = require("../models/Category");
 
 // ** Read Road **
-router.get("/todo/read", async (req, res) => {
+router.get("/todo/read", isAuthenticated, async (req, res) => {
   try {
-    const todos = await Todo.find().populate("categories");
+    const user = req.user;
+    const todos = await Todo.find({ user: user._id }).populate("categories");
 
     res.status(200).json(todos);
   } catch (error) {
@@ -16,12 +19,14 @@ router.get("/todo/read", async (req, res) => {
 });
 
 // ** Create road **
-router.post("/todo/create", async (req, res) => {
+router.post("/todo/create", isAuthenticated, async (req, res) => {
   try {
     const { content, urgent, important, categories, deadline } = req.fields;
+    const user = req.user;
 
     const newTodo = await new Todo({
       content: content,
+      user: user._id,
       date: new Date(),
     });
 
@@ -56,50 +61,64 @@ router.post("/todo/create", async (req, res) => {
 });
 
 // ** Update Road **
-router.put("/todo/update", async (req, res) => {
+router.put("/todo/update", isAuthenticated, async (req, res) => {
   try {
     const { todoID, content, achivement, urgent, important } = req.fields;
+    const user = req.user;
 
     const findTodo = await Todo.findById(todoID);
 
-    if (content) {
-      findTodo.content = content;
+    if (findTodo.user.toString() === user._id.toString()) {
+      if (content) {
+        findTodo.content = content;
+      }
+
+      if (achivement) {
+        findTodo.achivement = achivement;
+      }
+
+      if (urgent) {
+        findTodo.urgent = urgent;
+      }
+
+      if (important) {
+        findTodo.important = important;
+      }
+
+      const responses = await findTodo.save();
+
+      res.status(200).json(responses);
+    } else {
+      res.status(401).json({ error: "Unauthorized" });
     }
-
-    if (achivement) {
-      findTodo.achivement = achivement;
-    }
-
-    if (urgent) {
-      findTodo.urgent = urgent;
-    }
-
-    if (important) {
-      findTodo.important = important;
-    }
-
-    const responses = await findTodo.save();
-
-    res.status(200).json(responses);
   } catch (error) {
     res.status(400).json(error.message);
   }
 });
 
 // ** Delete Road *
-router.delete("/todo/delete", async (req, res) => {
+router.delete("/todo/delete", isAuthenticated, async (req, res) => {
   try {
     const { todoID } = req.query;
+    const user = req.user;
 
-    const todoToDelete = await Todo.findByIdAndRemove(todoID);
+    const todoToDelete = await Todo.findById(todoID);
 
-    const findCategoryToPush = await Category.findById(todoToDelete.categories);
+    if (todoToDelete.user.toString() === user._id.toString()) {
+      await Todo.findByIdAndDelete(todoID);
 
-    findCategoryToPush.number_of_todo--;
+      const findCategoryToPush = await Category.findById(
+        todoToDelete.categories
+      );
 
-    await findCategoryToPush.save();
+      findCategoryToPush.number_of_todo--;
 
-    res.status(200).json({ message: "Your todo has been deleted" });
+      await findCategoryToPush.save();
+
+      res.status(200).json({ message: "Your todo has been deleted" });
+    } else {
+      res.status(401).json({ error: "Unauthorized" });
+    }
   } catch (error) {
     res.status(400).json(error.message);
   }

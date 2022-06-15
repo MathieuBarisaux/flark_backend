@@ -37,6 +37,23 @@ router.get("/note/read-all", isAuthentificated, async (req, res) => {
   }
 });
 
+// ** Update note **
+router.put("/note/update", isAuthentificated, async (req, res) => {
+  try {
+    const { updateText, noteId } = req.fields;
+
+    const searchNoteToUpdate = await Note.findById(noteId);
+
+    searchNoteToUpdate.content = updateText;
+
+    await searchNoteToUpdate.save();
+
+    res.status(200).json({ message: "Your note has been update" });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+
 // ** Delete one note **
 router.delete("/note/delete-one", isAuthentificated, async (req, res) => {
   try {
