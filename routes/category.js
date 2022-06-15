@@ -73,7 +73,6 @@ router.delete("/category/delete", async (req, res) => {
     const cat = await Category.findByIdAndDelete(category_id);
 
     const allTodosInCat = await Todo.deleteMany({ categories: category_id });
-    console.log(allTodosInCat);
 
     res.status(200).json({ message: "Your category has been deleted" });
   } catch (error) {

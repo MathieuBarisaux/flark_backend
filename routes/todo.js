@@ -83,7 +83,6 @@ router.put("/todo/update", async (req, res) => {
     res.status(200).json(responses);
   } catch (error) {
     res.status(400).json(error.message);
-    console.log(error.message);
   }
 });
 

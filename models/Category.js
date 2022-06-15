@@ -8,6 +8,10 @@ const Category = mongoose.model("Category", {
     default: 0,
   },
   category_icon: String,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 
 module.exports = Category;

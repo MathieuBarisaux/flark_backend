@@ -2,7 +2,10 @@ const mongoose = require("mongoose");
 
 const Todo = mongoose.model("Todo", {
   content: String,
-  user: Object,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   achivement: {
     type: Boolean,
     default: false,

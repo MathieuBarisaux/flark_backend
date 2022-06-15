@@ -14,15 +14,18 @@ app.use(cors());
 const mongoose = require("mongoose");
 mongoose.connect(process.env.MONGODB_URI);
 
-// ** Roads **
-const todoRoad = require("./routes/todo");
-app.use(todoRoad);
+// ** Routes **
+const todoRoute = require("./routes/todo");
+app.use(todoRoute);
 
-const categoryRoad = require("./routes/category");
-app.use(categoryRoad);
+const categoryRoute = require("./routes/category");
+app.use(categoryRoute);
 
-const userRoad = require("./routes/user");
-app.use(userRoad);
+const userRoute = require("./routes/user");
+app.use(userRoute);
+
+const noteRoute = require("./routes/note");
+app.use(noteRoute);
 
 // ** 404 Not Found **
 app.all("*", (req, res) => {
