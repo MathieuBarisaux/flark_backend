@@ -6,6 +6,11 @@ const uid2 = require("uid2");
 const SHA256 = require("crypto-js/sha256");
 const encBase64 = require("crypto-js/enc-base64");
 
+const cloudinary = require("../tools/cloudinary");
+
+// ** Middleware **
+const isAuthentificated = require("../Middleware/isAuthentificated");
+
 // ** Model **
 const User = require("../models/User");
 
@@ -72,6 +77,62 @@ router.post("/users/signin", async (req, res) => {
         .status(409)
         .json({ message: "Sorry but this mail or password is not exact" });
     }
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+
+// ** Update road **
+router.put("/users/update", isAuthentificated, async (req, res) => {
+  try {
+    const { userPicture } = req.files;
+    const { email, pseudo, password } = req.fields;
+    const user = req.user;
+
+    if (userPicture) {
+      if (user.avatar) {
+        await cloudinary.api.delete_resources_by_prefix(
+          `/Flark/users/${user._id}`
+        );
+      }
+
+      const uploadPicture = await cloudinary.uploader.upload(userPicture.path, {
+        folder: `/Flark/users/${user._id}`,
+        public_id: user._id,
+      });
+
+      user.avatar = uploadPicture.secure_url;
+    }
+
+    if (email) {
+      user.email = email;
+    }
+
+    if (pseudo) {
+      user.pseudo = pseudo;
+    }
+
+    if (password) {
+      const newSalt = uid2(64);
+      const newHash = SHA256(password + newSalt).toString(encBase64);
+      const newToken = uid2(64);
+
+      user.salt = newSalt;
+      user.hash = newHash;
+      user.token = newToken;
+    }
+
+    await user.save();
+
+    const userToSendInfo = {
+      _id: user._id,
+      pseudo: user.pseudo,
+      email: user.email,
+      token: user.token,
+      avatar: user.avatar,
+    };
+
+    res.status(200).json(userToSendInfo);
   } catch (error) {
     res.status(400).json(error.message);
   }
