@@ -42,7 +42,7 @@ router.post("/todo/create", isAuthenticated, async (req, res) => {
       newTodo.deadline = deadline;
     }
 
-    if (categories) {
+    if (categories !== "uncategorized") {
       newTodo.categories = categories;
 
       const findCategoryToPush = await Category.findById(categories);
@@ -107,13 +107,15 @@ router.delete("/todo/delete", isAuthenticated, async (req, res) => {
     if (todoToDelete.user.toString() === user._id.toString()) {
       await Todo.findByIdAndDelete(todoID);
 
-      const findCategoryToPush = await Category.findById(
-        todoToDelete.categories
-      );
+      if (todoToDelete.categories) {
+        const findCategoryToPush = await Category.findById(
+          todoToDelete.categories
+        );
 
-      findCategoryToPush.number_of_todo--;
+        findCategoryToPush.number_of_todo--;
 
-      await findCategoryToPush.save();
+        await findCategoryToPush.save();
+      }
 
       res.status(200).json({ message: "Your todo has been deleted" });
     } else {
