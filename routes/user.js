@@ -124,15 +124,26 @@ router.put("/users/update", isAuthentificated, async (req, res) => {
 
     await user.save();
 
-    const userToSendInfo = {
-      _id: user._id,
+    res
+      .status(200)
+      .json({ message: "Your profil has been update with success" });
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+
+// ** Read user informations **
+router.get("/users/read", isAuthentificated, async (req, res) => {
+  try {
+    const user = req.user;
+
+    const userInformations = {
       pseudo: user.pseudo,
-      email: user.email,
-      token: user.token,
       avatar: user.avatar,
+      email: user.email,
     };
 
-    res.status(200).json(userToSendInfo);
+    res.status(200).json(userInformations);
   } catch (error) {
     res.status(400).json(error.message);
   }
