@@ -17,7 +17,7 @@ const User = require("../models/User");
 // ** Sign Up road **
 router.post("/users/signup", async (req, res) => {
   try {
-    const { name, password, email } = req.fields;
+    const { pseudo, password, email } = req.fields;
 
     const checkEmail = await User.findOne({ email: email });
 
@@ -27,7 +27,7 @@ router.post("/users/signup", async (req, res) => {
       const token = uid2(64);
 
       const newUser = await new User({
-        pseudo: name,
+        pseudo: pseudo,
         email: email,
         salt: salt,
         hash: hash,
@@ -40,6 +40,7 @@ router.post("/users/signup", async (req, res) => {
         id: createdResponse._id,
         token: createdResponse.token,
         pseudo: createdResponse.pseudo,
+        email: createdResponse.email,
       });
     } else {
       res.status(409).json({ message: "Sorry but this email is already use" });
@@ -66,6 +67,9 @@ router.post("/users/signin", async (req, res) => {
           id: searchMailUser._id,
           token: searchMailUser.token,
           pseudo: searchMailUser.pseudo,
+          avatar: searchMailUser.avatar,
+          email: searchMailUser.email,
+          newsletter: searchMailUser.newsletter,
         });
       } else {
         res
