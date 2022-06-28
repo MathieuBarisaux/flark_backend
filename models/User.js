@@ -11,7 +11,10 @@ const User = mongoose.model("User", {
   token: String,
   hash: String,
   salt: String,
-  newsletter: Boolean,
+  newsletter: {
+    default: false,
+    type: Boolean,
+  },
 });
 
 module.exports = User;

@@ -13,6 +13,9 @@ const isAuthentificated = require("../Middleware/isAuthentificated");
 
 // ** Model **
 const User = require("../models/User");
+const Category = require("../models/Category");
+const Todo = require("../models/Todo");
+const Note = require("../models/Note");
 
 // ** Sign Up road **
 router.post("/users/signup", async (req, res) => {
@@ -90,7 +93,7 @@ router.post("/users/signin", async (req, res) => {
 router.put("/users/update", isAuthentificated, async (req, res) => {
   try {
     const { userPicture } = req.files;
-    const { email, pseudo, password } = req.fields;
+    const { email, pseudo } = req.fields;
     const user = req.user;
 
     if (userPicture) {
@@ -116,21 +119,51 @@ router.put("/users/update", isAuthentificated, async (req, res) => {
       user.pseudo = pseudo;
     }
 
-    if (password) {
-      const newSalt = uid2(64);
-      const newHash = SHA256(password + newSalt).toString(encBase64);
-      const newToken = uid2(64);
-
-      user.salt = newSalt;
-      user.hash = newHash;
-      user.token = newToken;
-    }
-
     await user.save();
 
-    res
-      .status(200)
-      .json({ message: "Your profil has been update with success" });
+    const userInformations = {
+      pseudo: user.pseudo,
+      avatar: user.avatar,
+      email: user.email,
+    };
+
+    res.status(200).json(userInformations);
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+
+// ** Update password **
+router.put("/users/update-password", isAuthentificated, async (req, res) => {
+  try {
+    const user = req.user;
+    const { password, newPassword } = req.fields;
+
+    if (password && newPassword) {
+      if (SHA256(password + user.salt).toString(encBase64) === user.hash) {
+        const salt = uid2(64);
+        const hash = SHA256(newPassword + salt).toString(encBase64);
+        const token = uid2(64);
+
+        const userToChangePassword = await User.findById(user._id);
+
+        userToChangePassword.salt = salt;
+        userToChangePassword.hash = hash;
+        userToChangePassword.token = token;
+
+        await userToChangePassword.save();
+
+        res.status(200).json({ token: token });
+      } else {
+        res
+          .status(400)
+          .json({ message: "Your current password is not correct." });
+      }
+    } else {
+      res
+        .status(400)
+        .json({ message: "We need more elements to update your password." });
+    }
   } catch (error) {
     res.status(400).json(error.message);
   }
@@ -148,6 +181,22 @@ router.get("/users/read", isAuthentificated, async (req, res) => {
     };
 
     res.status(200).json(userInformations);
+  } catch (error) {
+    res.status(400).json(error.message);
+  }
+});
+
+// ** Delete user account **
+router.delete("/users/delete", isAuthentificated, async (req, res) => {
+  try {
+    const user = req.user;
+
+    await Category.deleteMany({ user: user._id });
+    await Todo.deleteMany({ user: user._id });
+    await Note.deleteMany({ user: user._id });
+    await User.findByIdAndDelete(user._id);
+
+    res.status(200).json({ message: "Your account has been deleted" });
   } catch (error) {
     res.status(400).json(error.message);
   }
