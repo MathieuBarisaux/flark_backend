@@ -93,7 +93,7 @@ router.post("/users/signin", async (req, res) => {
 router.put("/users/update", isAuthentificated, async (req, res) => {
   try {
     const { userPicture } = req.files;
-    const { email, pseudo } = req.fields;
+    const { email, pseudo, newsletter } = req.fields;
     const user = req.user;
 
     if (userPicture) {
@@ -115,6 +115,10 @@ router.put("/users/update", isAuthentificated, async (req, res) => {
       user.email = email;
     }
 
+    if (newsletter) {
+      user.newsletter = newsletter;
+    }
+
     if (pseudo) {
       user.pseudo = pseudo;
     }
@@ -125,6 +129,7 @@ router.put("/users/update", isAuthentificated, async (req, res) => {
       pseudo: user.pseudo,
       avatar: user.avatar,
       email: user.email,
+      newsletter: user.newsletter,
     };
 
     res.status(200).json(userInformations);
@@ -164,23 +169,6 @@ router.put("/users/update-password", isAuthentificated, async (req, res) => {
         .status(400)
         .json({ message: "We need more elements to update your password." });
     }
-  } catch (error) {
-    res.status(400).json(error.message);
-  }
-});
-
-// ** Read user informations **
-router.get("/users/read", isAuthentificated, async (req, res) => {
-  try {
-    const user = req.user;
-
-    const userInformations = {
-      pseudo: user.pseudo,
-      avatar: user.avatar,
-      email: user.email,
-    };
-
-    res.status(200).json(userInformations);
   } catch (error) {
     res.status(400).json(error.message);
   }

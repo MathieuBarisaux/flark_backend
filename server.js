@@ -27,6 +27,9 @@ app.use(userRoute);
 const noteRoute = require("./routes/note");
 app.use(noteRoute);
 
+const contactRoute = require("./routes/contact");
+app.use(contactRoute);
+
 // ** 404 Not Found **
 app.all("*", (req, res) => {
   try {
