@@ -7,6 +7,9 @@ const app = express();
 const expressFormidable = require("express-formidable");
 app.use(expressFormidable());
 
+const helmet = require("helmet");
+app.use(helmet());
+
 // ** Cors **
 const cors = require("cors");
 app.use(cors());
