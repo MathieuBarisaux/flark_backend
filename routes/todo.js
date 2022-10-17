@@ -62,38 +62,38 @@ router.post("/todo/create", isAuthenticated, async (req, res) => {
 
 // ** Update Road **
 router.put("/todo/update", isAuthenticated, async (req, res) => {
-  // try {
-  const { todoID, content, achivement, urgent, important } = req.fields;
-  const user = req.user;
+  try {
+    const { todoID, content, achivement, urgent, important } = req.fields;
+    const user = req.user;
 
-  const findTodo = Todo.findById(todoID);
+    const findTodo = Todo.findById(todoID);
 
-  if (findTodo.user.toString() === user._id.toString()) {
-    if (content) {
-      findTodo.content = content;
+    if (findTodo.user.toString() === user._id.toString()) {
+      if (content) {
+        findTodo.content = content;
+      }
+
+      if (achivement) {
+        findTodo.achivement = achivement;
+      }
+
+      if (urgent) {
+        findTodo.urgent = urgent;
+      }
+
+      if (important) {
+        findTodo.important = important;
+      }
+
+      const responses = await findTodo.save();
+
+      res.status(200).json(responses);
+    } else {
+      res.status(401).json({ error: "Unauthorized" });
     }
-
-    if (achivement) {
-      findTodo.achivement = achivement;
-    }
-
-    if (urgent) {
-      findTodo.urgent = urgent;
-    }
-
-    if (important) {
-      findTodo.important = important;
-    }
-
-    const responses = await findTodo.save();
-
-    res.status(200).json(responses);
-  } else {
-    res.status(401).json({ error: "Unauthorized" });
+  } catch (error) {
+    res.status(400).json(error.message);
   }
-  // } catch (error) {
-  //   res.status(400).json(error.message);
-  // }
 });
 
 // ** Delete Road *
