@@ -2,15 +2,10 @@ module.exports = {
   apps: [
     {
       name: "flark",
+      restart_delay: 100,
       script: "server.js",
-      instances: "max",
+      instances: "2",
       exec_mode: "cluster",
-      env: {
-        NODE_ENV: "development",
-      },
-      env_production: {
-        NODE_ENV: "production",
-      },
     },
     {
       script: "./service-worker/",
