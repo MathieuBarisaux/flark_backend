@@ -10,6 +10,11 @@ app.use(expressFormidable());
 const helmet = require("helmet");
 app.use(helmet());
 
+if (process.env.NODE_ENV !== "production") {
+  const morgan = require("morgan");
+  app.use(morgan("tiny"));
+}
+
 // ** Cors **
 const cors = require("cors");
 app.use(cors());
