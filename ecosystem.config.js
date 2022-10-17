@@ -4,7 +4,7 @@ module.exports = {
       name: "flark",
       script: "server.js",
       instances: "max",
-      autorestart: true,
+      exec_mode: "cluster",
       env: {
         NODE_ENV: "development",
       },
